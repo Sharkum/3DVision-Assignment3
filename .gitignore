@@ -1,0 +1,51 @@
+# Local Python / Conda / CUDA environments (15 GB+)
+.env/
+venv/
+env/
+.venv/
+.conda/
+
+# Raw dataset archive at root (extracted contents in data/ ARE tracked)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# data folder
+data/
+
+# Training checkpoints and intermediate PLY/render dumps
+runs/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# C++ / CUDA extension build artifacts
+build/
+dist/
+*.egg-info/
+*.so
+*.o
+*.a
+.ninja_deps
+.ninja_log
+
+# IDE, OS, and temporary files
+.vscode/
+.idea/
+.claude/
+.cursor/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+*.log
+/tmp/
+*.md
+*.pdf
