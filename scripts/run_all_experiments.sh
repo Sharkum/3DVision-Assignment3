@@ -9,9 +9,14 @@ rm -rf "$WORKSPACE/runs/smoke_test"
 
 for K in 8 4 2; do
     MODEL_DIR="$WORKSPACE/runs/tadgs_k${K}"
-    if [ -f "$MODEL_DIR/point_cloud/best/point_cloud.ply" ] && grep -q "Iteration: 8000" "$MODEL_DIR/training_log.txt" 2>/dev/null; then
-        echo "[Skip] k=$K already trained to completion."
-        continue
+    if [ -d "$MODEL_DIR" ]; then
+        if [ -f "$MODEL_DIR/point_cloud/best/point_cloud.ply" ] && grep -q "Iteration: 8000" "$MODEL_DIR/training_log.txt" 2>/dev/null; then
+            echo "[Skip] k=$K already trained to completion."
+            continue
+        else
+            echo "[Clean] Removing incomplete previous run at $MODEL_DIR"
+            rm -rf "$MODEL_DIR"
+        fi
     fi
     echo "============================================================"
     echo "Starting TAD-GS Training for frame_gap k=$K"
