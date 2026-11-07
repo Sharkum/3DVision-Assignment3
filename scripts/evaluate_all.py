@@ -68,7 +68,7 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
         (save_dir / "renders").mkdir(parents=True, exist_ok=True)
         (save_dir / "gt").mkdir(parents=True, exist_ok=True)
 
-    for idx in range(len(views)):
+    for idx in tqdm(range(len(views)), desc="Evaluating views", file=sys.stdout):
         view = views[idx]
         frame_idx = int(round(view.timestamp * duration))
         cam_name = view.image_name
@@ -127,7 +127,7 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
 def main():
     duration = 50
     scene_path = WORKSPACE / "data" / "neural_3d_video" / "scenes" / "coffee_martini" / "colmap_0"
-    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "valid_masks"
+    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "bbox_masks"
     results_dir = WORKSPACE / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
