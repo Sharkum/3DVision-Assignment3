@@ -21,7 +21,7 @@ Look things up here as you read.
 | $\mathbf{s}_i \in \mathbb{R}^3$ | 3D scale (size along its 3 axes); stored as a log, so the real scale is $e^{\text{stored value}}$. | `_scaling` |
 | $\mathbf{q}_{i,0} \in \mathbb{R}^4$ | Base rotation as a **quaternion**, i.e. 4 numbers $(w,x,y,z)$ that encode a 3D rotation once scaled to unit length. | `_rotation` |
 | $\tilde{o}_i \in \mathbb{R}$ | Raw (pre-activation) opacity. A tilde $\tilde{\ }$ always means "raw value before an activation function". | `_opacity` |
-| $\operatorname{sigm}(x) = \frac{1}{1+e^{-x}}$ | Sigmoid; squashes any number into $(0,1)$. | `torch.sigmoid` |
+| $\mathrm{sigm}(x) = \frac{1}{1+e^{-x}}$ | Sigmoid; squashes any number into $(0,1)$. | `torch.sigmoid` |
 | $\mathbf{c}_i$ | Colour as **spherical-harmonic (SH)** coefficients (view-dependent colour), exactly as in 3DGS. | `_features_dc`, `_features_rest` |
 | $\mu_{t,i} \in [0,1]$ | **Temporal centre**: the moment in time Gaussian $i$ is "about". Fixed, not learned. | `_trbf_center` |
 | $\delta_i(t)$ | **Time offset** of $t$ from $\mu_{t,i}$ (possibly warped, see TOW). | `get_offset()` |
@@ -32,11 +32,11 @@ Look things up here as you read.
 | $`\nabla_{\mathbf{p}_i}\mathcal{L}`$ | Gradient of the image loss $\mathcal{L}$ w.r.t. $\mathbf{p}_i$: "how much the loss wants this Gaussian to move on screen". | `viewspace_point_tensor.grad[:, :2]` |
 | $\lVert\cdot\rVert_2$ | Euclidean length of a vector. | `torch.norm` |
 | $\tau_{\text{pos}}$ | Densification gradient threshold (default $0.0002$; $0.0003$ for `coffee_martini`). | `densify_grad_threshold` |
-| $\operatorname{clamp}(x, a, b)$ | Clip $x$ into the interval $[a,b]$. | `torch.clamp` |
-| $\operatorname{sign}(x)$ | $+1$ if $`x>0`$, $-1$ if $`x<0`$, $0$ if $x=0$. | `torch.sign` |
+| $\mathrm{clamp}(x, a, b)$ | Clip $x$ into the interval $[a,b]$. | `torch.clamp` |
+| $\mathrm{sign}(x)$ | $+1$ if $`x>0`$, $-1$ if $`x<0`$, $0$ if $x=0$. | `torch.sign` |
 
 > [!IMPORTANT]
-> The original 3DGS papers write opacity as $\alpha$. **This document writes opacity as $o$** because $\alpha$ is also the name of a TAT hyperparameter, which is renamed to $\gamma$ here. In the same way, $\sigma$ (no argument) always means a **temporal width**, never the sigmoid, which is written $\operatorname{sigm}$.
+> The original 3DGS papers write opacity as $\alpha$. **This document writes opacity as $o$** because $\alpha$ is also the name of a TAT hyperparameter, which is renamed to $\gamma$ here. In the same way, $\sigma$ (no argument) always means a **temporal width**, never the sigmoid, which is written $\mathrm{sigm}$.
 
 ---
 
@@ -50,7 +50,7 @@ In 3DGS, Gaussian $i$ has the parameters
 \Theta_i^{\text{3DGS}} = \big\{\, \boldsymbol{\mu}_{i,0},\ \mathbf{s}_i,\ \mathbf{q}_{i,0},\ \tilde{o}_i,\ \mathbf{c}_i \,\big\}
 ```
 
-Its shape is the covariance $`\boldsymbol{\Sigma}_i = R(\mathbf{q})\,S\,S^\top R(\mathbf{q})^\top`$, built from the rotation matrix $R(\mathbf{q})$ and the diagonal scale matrix $S = \operatorname{diag}(\mathbf{s})$. To render, every Gaussian is projected to a 2D ellipse on screen, the ellipses are sorted front to back, and colours are alpha-blended using opacity $`o_i = \operatorname{sigm}(\tilde{o}_i)`$.
+Its shape is the covariance $`\boldsymbol{\Sigma}_i = R(\mathbf{q})\,S\,S^\top R(\mathbf{q})^\top`$, built from the rotation matrix $R(\mathbf{q})$ and the diagonal scale matrix $S = \mathrm{diag}(\mathbf{s})$. To render, every Gaussian is projected to a 2D ellipse on screen, the ellipses are sorted front to back, and colours are alpha-blended using opacity $`o_i = \mathrm{sigm}(\tilde{o}_i)`$.
 
 The rasterizer also returns, for each Gaussian, its on-screen radius $\text{radii}_i$. It is $`>0`$ whenever the Gaussian lands inside the camera's view frustum (the pyramid-shaped region the camera can see). In code this is `visibility_filter = radii > 0` ([renderer](TAD-GS/gaussian_renderer/__init__.py#L94)).
 
@@ -168,7 +168,7 @@ The warped offset is a **piecewise-linear** function (two straight-line pieces j
 ```math
 \delta_i(t) = \begin{cases}
 d \cdot \lambda_{\text{in}}, & |d| \le m \quad \text{(inside the window: steep slope)}\\[6pt]
-\operatorname{sign}(d)\, m\, \lambda_{\text{in}} \;+\; \big(d - \operatorname{sign}(d)\, m\big)\, \lambda_{\text{out}}, & |d| > m \quad \text{(outside: shallow slope)}
+\mathrm{sign}(d)\, m\, \lambda_{\text{in}} \;+\; \big(d - \mathrm{sign}(d)\, m\big)\, \lambda_{\text{out}}, & |d| > m \quad \text{(outside: shallow slope)}
 \end{cases}
 ```
 
@@ -190,12 +190,12 @@ The second line reads: "go to the window edge at the steep slope, then continue 
 **Idea.** A Gaussian's opacity should rise and fall over time like a bell curve centred at $\mu_{t,i}$. Real events are often lopsided: a splash appears suddenly but fades slowly. So TAD-GS uses **different widths on each side** of the peak ([`deform_gauss_op_asym`](TAD-GS/scene/tad_gaussian.py#L188-L204), [`get_opacity_at_t`](TAD-GS/scene/tad_gaussian.py#L214-L218)):
 
 ```math
-o_i(t) = \underbrace{\operatorname{sigm}(\tilde{o}_i)}_{\text{peak opacity (as in 3DGS)}} \cdot \underbrace{\exp\!\left( -\left( \frac{\delta_i(t)}{\sigma_i(t)} \right)^{2} \right)}_{\text{temporal bell, between 0 and 1}},
+o_i(t) = \underbrace{\mathrm{sigm}(\tilde{o}_i)}_{\text{peak opacity (as in 3DGS)}} \cdot \underbrace{\exp\!\left( -\left( \frac{\delta_i(t)}{\sigma_i(t)} \right)^{2} \right)}_{\text{temporal bell, between 0 and 1}},
 \qquad
 \sigma_i(t) = \begin{cases} \sigma_{i,L} & \text{if } \delta_i(t) < 0 \ \ \text{(before the peak)}\\ \sigma_{i,R} & \text{if } \delta_i(t) \ge 0 \ \ \text{(after the peak)} \end{cases}
 ```
 
-- At $\delta = 0$ (the Gaussian's own moment) the bell equals $1$, so $`o_i = \operatorname{sigm}(\tilde{o}_i)`$.
+- At $\delta = 0$ (the Gaussian's own moment) the bell equals $1$, so $`o_i = \mathrm{sigm}(\tilde{o}_i)`$.
 - Large $\sigma$ means a wide bell: the Gaussian lives a long time (e.g. static background).
 - Small $\sigma$ means a narrow bell: a short-lived, transient Gaussian.
 
@@ -218,7 +218,7 @@ With the defaults $M = 10$ (`min_visible_timestamps`), $\tau_{\text{vis}} = 0.2$
 The stored raw parameters $`\tilde{s}_{i,L}, \tilde{s}_{i,R}`$ (`_trbf_scale`) are turned into widths by ([`get_trbf_scale`](TAD-GS/scene/tad_gaussian.py#L182-L186)):
 
 ```math
-\sigma_{i,L} = \operatorname{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,L}},\ 0,\ 1.1 \big), \qquad \sigma_{i,R} = \operatorname{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,R}},\ 0,\ 1.1 \big)
+\sigma_{i,L} = \mathrm{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,L}},\ 0,\ 1.1 \big), \qquad \sigma_{i,R} = \mathrm{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,R}},\ 0,\ 1.1 \big)
 ```
 
 > [!WARNING]
@@ -328,7 +328,7 @@ If a Gaussian had no valid frames, $\bar{\sigma}_i$ defaults to $1$ (treated as 
 **Step 2: give each Gaussian its own threshold** ([`densify_gaussians`](TAD-GS/scene/tad_gaussian.py#L698-L703), [`grad_normalizer`](TAD-GS/scene/tad_gaussian.py#L865-L871)):
 
 ```math
-\tau_i = \tau_{\text{pos}} \cdot \Big( \beta + (1 - \beta)\,\operatorname{clamp}(\bar{\sigma}_i, 0, 1)^{\gamma} \Big)
+\tau_i = \tau_{\text{pos}} \cdot \Big( \beta + (1 - \beta)\,\mathrm{clamp}(\bar{\sigma}_i, 0, 1)^{\gamma} \Big)
 ```
 
 with $\beta = 0.75$ (`beta`) and $\gamma = 0.8$ (`alpha` in code). The bracket is a multiplier between $\beta$ and $1$:
@@ -362,7 +362,7 @@ For each iteration $k$:
 2. For every Gaussian compute $`\delta_i(t_k)`$ (warped if `--tow`), then $`\boldsymbol{\mu}_i(t_k)`$, $`\mathbf{q}_i(t_k)`$, $`o_i(t_k)`$.
 3. Rasterise exactly like 3DGS; compute the loss $\mathcal{L}_k$ ($L_1$ + D-SSIM) against the ground-truth image and backpropagate.
 4. Accumulate densification statistics (3DGS-style, or VAD/TAT-style).
-5. Every 200 iterations (between `densify_from_iter` and `densify_until_iter`): clone/split, then prune Gaussians whose **peak** opacity $\operatorname{sigm}(\tilde{o}_i)$ is below `opthr`.
+5. Every 200 iterations (between `densify_from_iter` and `densify_until_iter`): clone/split, then prune Gaussians whose **peak** opacity $\mathrm{sigm}(\tilde{o}_i)$ is below `opthr`.
 6. Periodically reset opacities to a small value (as in 3DGS), so useless Gaussians can be pruned.
 
 ---
