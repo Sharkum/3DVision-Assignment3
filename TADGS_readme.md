@@ -3,7 +3,7 @@
 > [!NOTE]
 > **Who this is for**: you know **3D Gaussian Splatting (3DGS)**: a scene is a cloud of 3D Gaussians, each with a position, shape, opacity and colour; they are projected to the screen and alpha-blended; and the cloud grows during training by cloning and splitting Gaussians. You do **not** need to know any dynamic-scene (4D) methods. Section 1 covers the 3DGS pieces this document relies on, and Section 2 introduces dynamic Gaussian Splatting from scratch.
 >
-> All code links point to [`TAD-GS/scene/tad_gaussian.py`](TAD-GS/scene/tad_gaussian.py) unless stated otherwise.
+> All code links point to [`TAD-GS/scene/tad_gaussian.py`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py) unless stated otherwise.
 
 ---
 
@@ -52,7 +52,7 @@ In 3DGS, Gaussian $i$ has the parameters
 
 Its shape is the covariance $`\boldsymbol{\Sigma}_i = R(\mathbf{q})\,S\,S^\top R(\mathbf{q})^\top`$, built from the rotation matrix $R(\mathbf{q})$ and the diagonal scale matrix $S = \mathrm{diag}(\mathbf{s})$. To render, every Gaussian is projected to a 2D ellipse on screen, the ellipses are sorted front to back, and colours are alpha-blended using opacity $`o_i = \mathrm{sigm}(\tilde{o}_i)`$.
 
-The rasterizer also returns, for each Gaussian, its on-screen radius $\text{radii}_i$. It is $`>0`$ whenever the Gaussian lands inside the camera's view frustum (the pyramid-shaped region the camera can see). In code this is `visibility_filter = radii > 0` ([renderer](TAD-GS/gaussian_renderer/__init__.py#L94)).
+The rasterizer also returns, for each Gaussian, its on-screen radius $\text{radii}_i$. It is $`>0`$ whenever the Gaussian lands inside the camera's view frustum (the pyramid-shaped region the camera can see). In code this is `visibility_filter = radii > 0` ([renderer](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/gaussian_renderer/__init__.py#L94)).
 
 ### 1.2 Adaptive Density Control (clone / split)
 
@@ -125,7 +125,7 @@ The result is that **short-lived, fast-moving Gaussians have their gradient aver
 
 ## 4. Part A: How One Gaussian Changes Over Time
 
-A TAD-GS Gaussian ([`GaussianModel`](TAD-GS/scene/tad_gaussian.py#L27)) keeps the 3DGS parameters and adds temporal ones:
+A TAD-GS Gaussian ([`GaussianModel`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L27)) keeps the 3DGS parameters and adds temporal ones:
 
 | Parameter | Shape per Gaussian | Changes with time? |
 | :--- | :--- | :--- |
@@ -136,9 +136,9 @@ A TAD-GS Gaussian ([`GaussianModel`](TAD-GS/scene/tad_gaussian.py#L27)) keeps th
 | Phase shifts $\phi_{i,f}$ | 4 | Used to compute $\boldsymbol{\mu}_i(t)$ |
 | Rotation velocity $\boldsymbol{\omega}_i$ | 4 | Used to compute $\mathbf{q}_i(t)$ |
 
-**Where does $\mu_{t,i}$ come from?** The initial point cloud is built from a few *anchor frames* (every 24th frame by default: 0, 24, 48). Each point's $\mu_{t,i}$ is the normalised time of the frame it came from ([init](TAD-GS/scene/tad_gaussian.py#L273)). Cloned/split children inherit it from their parent. It is never optimised.
+**Where does $\mu_{t,i}$ come from?** The initial point cloud is built from a few *anchor frames* (every 24th frame by default: 0, 24, 48). Each point's $\mu_{t,i}$ is the normalised time of the frame it came from ([init](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L273)). Cloned/split children inherit it from their parent. It is never optimised.
 
-At render time $t$, the renderer asks each Gaussian for its position, rotation and opacity *at that time* ([renderer](TAD-GS/gaussian_renderer/__init__.py#L67-L69)) and then rasterises exactly like 3DGS. All three quantities depend on a single number: **the time offset $\delta_i(t)$**.
+At render time $t$, the renderer asks each Gaussian for its position, rotation and opacity *at that time* ([renderer](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/gaussian_renderer/__init__.py#L67-L69)) and then rasterises exactly like 3DGS. All three quantities depend on a single number: **the time offset $\delta_i(t)$**.
 
 ---
 
@@ -163,7 +163,7 @@ These define two slopes ("how fast warped time runs"):
 \lambda_{\text{in}} = \frac{B}{100}\cdot\frac{T}{S}, \qquad \lambda_{\text{out}} = \frac{100 - B}{100}\cdot\frac{T}{T - S}
 ```
 
-The warped offset is a **piecewise-linear** function (two straight-line pieces joined at $\pm m$), implemented in [`offset_warping_vectorized`](TAD-GS/scene/tad_gaussian.py#L804-L863) and called from [`get_offset`](TAD-GS/scene/tad_gaussian.py#L111-L125). Writing $d = t - \mu_{t,i}$ for the plain offset:
+The warped offset is a **piecewise-linear** function (two straight-line pieces joined at $\pm m$), implemented in [`offset_warping_vectorized`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L804-L863) and called from [`get_offset`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L111-L125). Writing $d = t - \mu_{t,i}$ for the plain offset:
 
 ```math
 \delta_i(t) = \begin{cases}
@@ -187,7 +187,7 @@ The second line reads: "go to the window edge at the steep slope, then continue 
 
 ### 4.2 Asymmetric Temporal Opacity: $o_i(t)$
 
-**Idea.** A Gaussian's opacity should rise and fall over time like a bell curve centred at $\mu_{t,i}$. Real events are often lopsided: a splash appears suddenly but fades slowly. So TAD-GS uses **different widths on each side** of the peak ([`deform_gauss_op_asym`](TAD-GS/scene/tad_gaussian.py#L188-L204), [`get_opacity_at_t`](TAD-GS/scene/tad_gaussian.py#L214-L218)):
+**Idea.** A Gaussian's opacity should rise and fall over time like a bell curve centred at $\mu_{t,i}$. Real events are often lopsided: a splash appears suddenly but fades slowly. So TAD-GS uses **different widths on each side** of the peak ([`deform_gauss_op_asym`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L188-L204), [`get_opacity_at_t`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L214-L218)):
 
 ```math
 o_i(t) = \underbrace{\mathrm{sigm}(\tilde{o}_i)}_{\text{peak opacity (as in 3DGS)}} \cdot \underbrace{\exp\!\left( -\left( \frac{\delta_i(t)}{\sigma_i(t)} \right)^{2} \right)}_{\text{temporal bell, between 0 and 1}},
@@ -205,7 +205,7 @@ The $\sigma$ that was used for the current frame is saved (`current_trbf_scale`)
 
 **Problem.** If $\sigma_i$ becomes tiny, the Gaussian is visible in exactly one training frame. It memorises that frame and vanishes at the in-between times you want to interpolate. This is a "Dirac spike": a function that is non-zero at only one instant.
 
-**Fix.** Express every $\sigma$ in units of a minimum width $\sigma_{\min}$, chosen so that a Gaussian of width $\sigma_{\min}$ has its temporal bell above a visibility level $\tau_{\text{vis}}$ for at least $M$ consecutive frames ([`sigma_min_for_M_frames`](TAD-GS/scene/tad_gaussian.py#L773-L784)).
+**Fix.** Express every $\sigma$ in units of a minimum width $\sigma_{\min}$, chosen so that a Gaussian of width $\sigma_{\min}$ has its temporal bell above a visibility level $\tau_{\text{vis}}$ for at least $M$ consecutive frames ([`sigma_min_for_M_frames`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L773-L784)).
 
 *Derivation.* The bell is $\ge \tau_{\text{vis}}$ when $|\delta| \le \sigma\sqrt{-\ln \tau_{\text{vis}}}$. Frames are spaced $\frac{1}{T-1}$ apart, so $M$ frames span a half-width of $h = \frac{M-1}{2(T-1)}$. Setting $\sigma\sqrt{-\ln\tau_{\text{vis}}} = h$ gives
 
@@ -215,7 +215,7 @@ The $\sigma$ that was used for the current frame is saved (`current_trbf_scale`)
 
 With the defaults $M = 10$ (`min_visible_timestamps`), $\tau_{\text{vis}} = 0.2$ (`visibility_threshold`) and $T = 50$, this gives $\sigma_{\min} \approx 0.072$.
 
-The stored raw parameters $`\tilde{s}_{i,L}, \tilde{s}_{i,R}`$ (`_trbf_scale`) are turned into widths by ([`get_trbf_scale`](TAD-GS/scene/tad_gaussian.py#L182-L186)):
+The stored raw parameters $`\tilde{s}_{i,L}, \tilde{s}_{i,R}`$ (`_trbf_scale`) are turned into widths by ([`get_trbf_scale`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L182-L186)):
 
 ```math
 \sigma_{i,L} = \mathrm{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,L}},\ 0,\ 1.1 \big), \qquad \sigma_{i,R} = \mathrm{clamp}\!\big( \sigma_{\min} \cdot e^{\tilde{s}_{i,R}},\ 0,\ 1.1 \big)
@@ -232,7 +232,7 @@ The stored raw parameters $`\tilde{s}_{i,L}, \tilde{s}_{i,R}`$ (`_trbf_scale`) a
 
 **Why not polynomials or a network?** STG moves each Gaussian along a cubic polynomial $`\sum_{k=1}^{3}\mathbf{b}_k\,(t-\mu_t)^k`$. Polynomials grow without bound as you move away from the centre, so a Gaussian can fly off when evaluated outside its training range. A neural network avoids that but is slow. **Sines and cosines are bounded** (always between $-1$ and $+1$), so they cannot blow up, and they are cheap to evaluate.
 
-**Trajectory** ([`deform_fourier_asym`](TAD-GS/scene/tad_gaussian.py#L147-L160), [`get_xyz_at_t`](TAD-GS/scene/tad_gaussian.py#L171-L173)). The position is the base position plus a **Fourier series**: a sum of $F$ waves of increasing frequency (*harmonics*). Here $F = 4$ (`motion_degree`):
+**Trajectory** ([`deform_fourier_asym`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L147-L160), [`get_xyz_at_t`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L171-L173)). The position is the base position plus a **Fourier series**: a sum of $F$ waves of increasing frequency (*harmonics*). Here $F = 4$ (`motion_degree`):
 
 ```math
 \boldsymbol{\mu}_i(t) = \boldsymbol{\mu}_{i,0} + \sum_{f=1}^{F} \Big[\, \mathbf{a}_{i,f} \cos\!\big(2\pi f\,\delta_i(t) + \phi_{i,f}\big) \;+\; \mathbf{b}_{i,f} \sin\!\big(2\pi f\,\delta_i(t) + \phi_{i,f}\big) \Big]
@@ -244,7 +244,7 @@ The stored raw parameters $`\tilde{s}_{i,L}, \tilde{s}_{i,R}`$ (`_trbf_scale`) a
 
 Note that the displacement is generally **not zero at $\delta = 0$**, so $\boldsymbol{\mu}_{i,0}$ is a base point, not necessarily where the Gaussian sits at its own centre time.
 
-**Rotation** ([`get_rotation_at_t`](TAD-GS/scene/tad_gaussian.py#L136-L139)). The quaternion moves in a straight line in 4D quaternion space and is then rescaled to unit length (a valid rotation):
+**Rotation** ([`get_rotation_at_t`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L136-L139)). The quaternion moves in a straight line in 4D quaternion space and is then rescaled to unit length (a valid rotation):
 
 ```math
 \mathbf{q}_i(t) = \frac{\mathbf{q}_{i,0} + \delta_i(t)\,\boldsymbol{\omega}_i}{\big\lVert\mathbf{q}_{i,0} + \delta_i(t)\,\boldsymbol{\omega}_i\big\rVert_2}
@@ -256,7 +256,7 @@ $\boldsymbol{\omega}_i \in \mathbb{R}^4$ (`_omega`) is a velocity *in quaternion
 
 ## 5. Why 3DGS Densification Fails on Videos
 
-Now back to densification, using the notation above. With `--vad` **off**, TAD-GS uses the plain 3DGS rule ([`d_add_densification_stats`, `vad=False`](TAD-GS/scene/tad_gaussian.py#L718-L722)). After each iteration $k$, which renders one camera at time $t_k$, every Gaussian with $`\text{radii}_i > 0`$ is updated:
+Now back to densification, using the notation above. With `--vad` **off**, TAD-GS uses the plain 3DGS rule ([`d_add_densification_stats`, `vad=False`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L718-L722)). After each iteration $k$, which renders one camera at time $t_k$, every Gaussian with $`\text{radii}_i > 0`$ is updated:
 
 ```math
 G_i^{\text{3DGS}} = \frac{\sum_{k \in \mathcal{F}_i} \big\lVert\nabla_{\mathbf{p}_i} \mathcal{L}_k\big\rVert_2}{|\mathcal{F}_i|},
@@ -290,11 +290,11 @@ Even with a correct average, a single threshold $\tau_{\text{pos}}$ treats a lon
 
 ## 6. Part B: TAD-GS's Two Densification Fixes
 
-Both live in [`d_add_densification_stats`](TAD-GS/scene/tad_gaussian.py#L716-L737) (accumulation, called every iteration from [`control_gaussians_n3dv`](TAD-GS/utils/common/helper_train.py#L100)) and [`densify_gaussians`](TAD-GS/scene/tad_gaussian.py#L694-L714) (decision, every 200 iterations).
+Both live in [`d_add_densification_stats`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L716-L737) (accumulation, called every iteration from [`control_gaussians_n3dv`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/utils/common/helper_train.py#L100)) and [`densify_gaussians`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L694-L714) (decision, every 200 iterations).
 
 ### 6.1 Visibility-Aware Densification (VAD, `--vad`) fixes failure mode 1
 
-VAD ([code](TAD-GS/scene/tad_gaussian.py#L724-L737)) changes the average in two ways:
+VAD ([code](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L724-L737)) changes the average in two ways:
 
 1. **Ignore ghost frames**: only count iteration $k$ if the Gaussian is actually visible in time, $`o_i(t_k) > 0.05`$.
 2. **Weight by opacity**: frames where the Gaussian is more opaque count more, in both the sum and the count. This is a **weighted average**.
@@ -325,7 +325,7 @@ and the Gaussian is densified.
 
 If a Gaussian had no valid frames, $\bar{\sigma}_i$ defaults to $1$ (treated as static).
 
-**Step 2: give each Gaussian its own threshold** ([`densify_gaussians`](TAD-GS/scene/tad_gaussian.py#L698-L703), [`grad_normalizer`](TAD-GS/scene/tad_gaussian.py#L865-L871)):
+**Step 2: give each Gaussian its own threshold** ([`densify_gaussians`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L698-L703), [`grad_normalizer`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L865-L871)):
 
 ```math
 \tau_i = \tau_{\text{pos}} \cdot \Big( \beta + (1 - \beta)\,\mathrm{clamp}(\bar{\sigma}_i, 0, 1)^{\gamma} \Big)
@@ -371,16 +371,18 @@ For each iteration $k$:
 
 | Concept | Part | Quantity | Where in code | CLI flag |
 | :--- | :--- | :--- | :--- | :--- |
-| Temporal centre | Representation | $\mu_{t,i}$ | `self._trbf_center` $(N,1)$, [init](TAD-GS/scene/tad_gaussian.py#L273) | always on |
-| Time offset / TOW | Representation | $\delta_i(t)$ | [`get_offset()`](TAD-GS/scene/tad_gaussian.py#L111-L125), [`offset_warping_vectorized()`](TAD-GS/scene/tad_gaussian.py#L804-L863) | `--tow` (`--temporal_span`, `--span_budget`) |
-| Width scale | Representation | $\sigma_{\min}$ | [`sigma_min_for_M_frames`](TAD-GS/scene/tad_gaussian.py#L773-L784) | `--min_visible_timestamps`, `--visibility_threshold` |
-| Asymmetric opacity | Representation | $o_i(t)$, $`\sigma_{i,L}, \sigma_{i,R}`$ | [`deform_gauss_op_asym()`](TAD-GS/scene/tad_gaussian.py#L188-L204), `self._trbf_scale` $(N,2)$ | default |
-| Fourier motion | Representation | $\boldsymbol{\mu}_i(t)$; $\mathbf{a}, \mathbf{b}, \phi$ | [`deform_fourier_asym()`](TAD-GS/scene/tad_gaussian.py#L147-L160), `self._motion` $(N,24)$, `self._amplitude` $(N,4)$ | default |
-| Rotation | Representation | $\mathbf{q}_i(t)$; $\boldsymbol{\omega}_i$ | [`get_rotation_at_t()`](TAD-GS/scene/tad_gaussian.py#L136-L139), `self._omega` $(N,4)$ | default |
-| VAD | Densification | $G_i^{\text{VAD}}$ | [`d_add_densification_stats(vad=True)`](TAD-GS/scene/tad_gaussian.py#L724-L737) | `--vad` |
-| TAT | Densification | $\bar{\sigma}_i$, $\tau_i$ | [`densify_gaussians()`](TAD-GS/scene/tad_gaussian.py#L698-L703), [`grad_normalizer()`](TAD-GS/scene/tad_gaussian.py#L865-L871) | `--tat` (needs `--vad`) |
+| Temporal centre | Representation | $\mu_{t,i}$ | `self._trbf_center` $(N,1)$, [init](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L273) | always on |
+| Time offset / TOW | Representation | $\delta_i(t)$ | [`get_offset()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L111-L125), [`offset_warping_vectorized()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L804-L863) | `--tow` (`--temporal_span`, `--span_budget`) |
+| Width scale | Representation | $\sigma_{\min}$ | [`sigma_min_for_M_frames`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L773-L784) | `--min_visible_timestamps`, `--visibility_threshold` |
+| Asymmetric opacity | Representation | $o_i(t)$, $`\sigma_{i,L}, \sigma_{i,R}`$ | [`deform_gauss_op_asym()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L188-L204), `self._trbf_scale` $(N,2)$ | default |
+| Fourier motion | Representation | $\boldsymbol{\mu}_i(t)$; $\mathbf{a}, \mathbf{b}, \phi$ | [`deform_fourier_asym()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L147-L160), `self._motion` $(N,24)$, `self._amplitude` $(N,4)$ | default |
+| Rotation | Representation | $\mathbf{q}_i(t)$; $\boldsymbol{\omega}_i$ | [`get_rotation_at_t()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L136-L139), `self._omega` $(N,4)$ | default |
+| VAD | Densification | $G_i^{\text{VAD}}$ | [`d_add_densification_stats(vad=True)`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L724-L737) | `--vad` |
+| TAT | Densification | $\bar{\sigma}_i$, $\tau_i$ | [`densify_gaussians()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L698-L703), [`grad_normalizer()`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/scene/tad_gaussian.py#L865-L871) | `--tat` (needs `--vad`) |
 
-**Default hyperparameters** ([`arguments/default.py`](TAD-GS/arguments/default.py#L117-L132); `coffee_martini` overrides in [`coffee_martini.json`](TAD-GS/arguments/neural_3d_video/coffee_martini.json)):
+**Default hyperparameters** ([`arguments/default.py`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/arguments/default.py#L116-L131); `coffee_martini` overrides in [`coffee_martini.json`](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/arguments/neural_3d_video/coffee_martini.json)):
+
+> *Note:* links go to the upstream TAD-GS code. The values below are from this project's locally modified config, which differs from upstream: upstream uses `temporal_span = 50` and `min_visible_timestamps = 50`, and the upstream `coffee_martini.json` does not override the densification settings in the last column.
 
 | Name | Symbol | Default | `coffee_martini` |
 | :--- | :--- | :--- | :--- |
