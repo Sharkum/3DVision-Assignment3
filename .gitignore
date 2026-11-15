@@ -48,6 +48,7 @@ Thumbs.db
 *.log
 /tmp/
 *.pdf
+!deliverables/report/report.pdf
 
 # Third-party submodule fetched separately (see TADGS/README.md)
 TADGS/TAD-GS/submodules/mmcv/
@@ -56,8 +57,11 @@ TADGS/TAD-GS/submodules/mmcv/
 # (k=2 -> t=21, k=4 -> t=22, k=8 -> t=20); everything else is regenerable with
 # TADGS/scripts/evaluate_all.py, render_all_frames.py and make_video.sh
 TADGS/results/renders_*/*/*.png
-!TADGS/results/renders_k2_cam00/*/cam00_frame0021.png
-!TADGS/results/renders_k4_cam00/*/cam00_frame0022.png
-!TADGS/results/renders_k8_cam00/*/cam00_frame0020.png
 TADGS/results/renders_*/*.mp4
 TADGS/results/dynamic_bbox_cam0*.mp4
+
+# TAD-GS per-method figures, videos and summary tables are regenerated locally; the report uses deliverables/
+TADGS/report/
+TADGS/results/*.png
+!TADGS/results/dynamic_mask_visualization.png
+TADGS/results/*.mp4
