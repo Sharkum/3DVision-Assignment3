@@ -41,7 +41,7 @@ def load_trained_gaussians(model_path: Path, duration: int = 50):
     gaussians.motion_degree = 4
     gaussians.opacity_mode = "deform_gauss_op_asym"
     gaussians.duration = duration
-    gaussians.pcd_downsample = 2
+    gaussians.pcd_downsample = 3
     gaussians.visibility_threshold = 0.2
     gaussians.min_visible_timestamps = 10
     gaussians.span_budget = 70
@@ -68,7 +68,7 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
         (save_dir / "renders").mkdir(parents=True, exist_ok=True)
         (save_dir / "gt").mkdir(parents=True, exist_ok=True)
 
-    for idx in range(len(views)):
+    for idx in tqdm(range(len(views)), desc="Evaluating views", file=sys.stdout):
         view = views[idx]
         frame_idx = int(round(view.timestamp * duration))
         cam_name = view.image_name
@@ -84,7 +84,11 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
 
         p_val, mp_val = psnr_ours(r_hwc, g_hwc, mask)
         s_val, ms_val = ssim_ours(r_hwc, g_hwc, mask.cpu().numpy() if mask is not None else None)
-        l_val, ml_val = rgb_lpips(r_hwc, g_hwc, net_name="alex", device="cuda", mask=mask)
+        if mask is not None:
+            l_val, ml_val = rgb_lpips(r_hwc, g_hwc, net_name="alex", device="cuda", mask=mask)
+        else:
+            l_val = rgb_lpips(r_hwc, g_hwc, net_name="alex", device="cuda")
+            ml_val = l_val
 
         psnrs.append(float(p_val))
         ssims.append(float(s_val))
@@ -123,7 +127,7 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
 def main():
     duration = 50
     scene_path = WORKSPACE / "data" / "neural_3d_video" / "scenes" / "coffee_martini" / "colmap_0"
-    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "valid_masks"
+    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "otsu_bbox_masks"
     results_dir = WORKSPACE / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 

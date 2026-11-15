@@ -193,36 +193,44 @@ def generate_visual_comparison():
 
 
 def generate_dynamic_mask_figure():
-    """Save an illustration of the optical-flow-based motion mask on cam00 at t=20."""
+    """Save an illustration of the Otsu optical-flow average bounding box mask on cam00 at t=20."""
     gt_file = WORKSPACE / "data" / "neural_3d_video" / "scenes" / "coffee_martini" / "colmap_20" / "images" / "cam00.png"
-    mask_file = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "valid_masks" / "mask_cam00_frame0020.png"
+    mask_file = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "otsu_bbox_masks" / "mask_cam00_frame0020.png"
     if not gt_file.exists() or not mask_file.exists():
+        print(f"[Warning] Mask file or GT file missing: {gt_file}, {mask_file}")
         return
 
     gt_rgb = cv2.cvtColor(cv2.imread(str(gt_file)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
     mask = (cv2.imread(str(mask_file), cv2.IMREAD_GRAYSCALE) > 127).astype(np.float32)
 
     overlay = gt_rgb.copy()
-    overlay[mask > 0.5] = 0.55 * overlay[mask > 0.5] + 0.45 * np.array([1.0, 0.15, 0.15])
+    # Dim background slightly and highlight dynamic box
+    overlay[mask < 0.5] = overlay[mask < 0.5] * 0.45
+    ys, xs = np.where(mask > 0.5)
+    x0, y0, x1, y1 = int(xs.min()), int(ys.min()), int(xs.max()), int(ys.max())
 
-    fig, axes = plt.subplots(1, 3, figsize=(13, 4.0))
+    fig, axes = plt.subplots(1, 3, figsize=(14, 4.2))
     axes[0].imshow(gt_rgb)
-    axes[0].set_title("Ground Truth Frame (cam00, t=20)", fontweight="bold")
+    axes[0].set_title("Ground Truth Frame (cam00, t=20)", fontweight="bold", fontsize=11)
     axes[0].axis("off")
 
     axes[1].imshow(mask, cmap="gray")
-    axes[1].set_title(f"Optical-Flow Dynamic Mask ({mask.mean()*100:.1f}% pixels)", fontweight="bold")
+    rect1 = patches.Rectangle((x0, y0), x1 - x0, y1 - y0, linewidth=2.2, edgecolor="#ff3333", facecolor="none")
+    axes[1].add_patch(rect1)
+    axes[1].set_title(f"Otsu Average Flow BBox Mask\nBox: {x1-x0}x{y1-y0} px ({mask.mean()*100:.1f}% pixels)", fontweight="bold", fontsize=11)
     axes[1].axis("off")
 
     axes[2].imshow(overlay)
-    axes[2].set_title("Dynamic Region Overlay on Ground Truth", fontweight="bold")
+    rect2 = patches.Rectangle((x0, y0), x1 - x0, y1 - y0, linewidth=2.5, edgecolor="#00ff88", facecolor="none")
+    axes[2].add_patch(rect2)
+    axes[2].set_title(f"Encapsulated Dynamic Region Overlay\n[{x0}:{x1}, {y0}:{y1}]", fontweight="bold", fontsize=11)
     axes[2].axis("off")
 
     plt.tight_layout()
     out_path = RESULTS_DIR / "dynamic_mask_visualization.png"
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
-    print(f"Saved dynamic mask visualization to {out_path}")
+    print(f"Saved updated dynamic mask visualization to {out_path}")
 
 
 def write_summary_tables(metrics: dict):
