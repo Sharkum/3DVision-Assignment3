@@ -9,7 +9,9 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-OUTPUT_DIR = PROJECT_ROOT / "output" / "coffee_martini_k8" / "all50_evaluation"
+# High-res all-50 data
+OUTPUT_DIR = PROJECT_ROOT / "output" / "coffee_martini_k8" / "highres_evaluation" / "gap_8" / "all50"
+FIGURE_DIR = PROJECT_ROOT / "output" / "figures"
 
 
 def load_csv(path):
@@ -62,7 +64,7 @@ def main():
     ax.set_xlabel("Frame index t (0 to 49)", fontsize=11, fontweight="bold")
     ax.set_ylabel("PSNR (dB)", fontsize=11, fontweight="bold")
     ax.set_title(
-        "4DGS Per-Frame PSNR Across All 50 Frames (k = 8, coffee_martini)",
+        "4DGS Per-Frame PSNR Across All 50 Frames (k = 8, coffee_martini, 2704×2028)",
         fontsize=13, fontweight="bold",
     )
     ax.set_xticks(range(0, 50, 2))
@@ -70,7 +72,8 @@ def main():
     ax.legend(loc="lower left", fontsize=9, ncol=2, framealpha=0.92)
 
     plt.tight_layout()
-    out_path = OUTPUT_DIR / "psnr_per_frame_k8.png"
+    FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+    out_path = FIGURE_DIR / "psnr_per_frame_k8_highres.png"
     plt.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     print(f"Saved: {out_path}")

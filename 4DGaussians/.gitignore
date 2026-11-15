@@ -9,8 +9,53 @@ data/
 data
 submodules/
 
-# Output directory: ignore everything except the report files
+# Output directory: ignore everything by default
 output/*
+
+# Allow report files
 !output/4DGS_Assignment_Report.md
 !output/report_v1.md
 !output/CODEBASE_CHANGES.md
+
+# Allow figures referenced in report
+!output/figures/
+output/figures/*
+!output/figures/visual_comparison_k2_k4_k8_highres.png
+!output/figures/psnr_per_frame_k8_highres.png
+
+# Allow highres evaluation CSVs only
+!output/coffee_martini_k2/
+output/coffee_martini_k2/*
+!output/coffee_martini_k2/highres_evaluation/
+output/coffee_martini_k2/highres_evaluation/*
+!output/coffee_martini_k2/highres_evaluation/gap_2/
+output/coffee_martini_k2/highres_evaluation/gap_2/*
+!output/coffee_martini_k2/highres_evaluation/gap_2/metrics.csv
+!output/coffee_martini_k2/highres_evaluation/gap_2/bbox_metrics.csv
+
+!output/coffee_martini_k4/
+output/coffee_martini_k4/*
+!output/coffee_martini_k4/highres_evaluation/
+output/coffee_martini_k4/highres_evaluation/*
+!output/coffee_martini_k4/highres_evaluation/gap_4/
+output/coffee_martini_k4/highres_evaluation/gap_4/*
+!output/coffee_martini_k4/highres_evaluation/gap_4/metrics.csv
+!output/coffee_martini_k4/highres_evaluation/gap_4/bbox_metrics.csv
+
+!output/coffee_martini_k8/
+output/coffee_martini_k8/*
+!output/coffee_martini_k8/highres_evaluation/
+output/coffee_martini_k8/highres_evaluation/*
+!output/coffee_martini_k8/highres_evaluation/gap_8/
+output/coffee_martini_k8/highres_evaluation/gap_8/*
+!output/coffee_martini_k8/highres_evaluation/gap_8/metrics.csv
+!output/coffee_martini_k8/highres_evaluation/gap_8/bbox_metrics.csv
+!output/coffee_martini_k8/highres_evaluation/gap_8/all50/
+output/coffee_martini_k8/highres_evaluation/gap_8/all50/*
+!output/coffee_martini_k8/highres_evaluation/gap_8/all50/cam00_all50.csv
+!output/coffee_martini_k8/highres_evaluation/gap_8/all50/train_cameras_all50.csv
+
+# Allow Otsu bboxes JSON only
+!output/dynamic_bbox_evaluation_v5_otsu/
+output/dynamic_bbox_evaluation_v5_otsu/*
+!output/dynamic_bbox_evaluation_v5_otsu/otsu_bboxes.json

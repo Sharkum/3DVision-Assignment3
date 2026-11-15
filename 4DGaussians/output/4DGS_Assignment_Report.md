@@ -116,12 +116,12 @@ In addition to full-image metrics, we separately evaluate reconstruction quality
 
 | k | Region | 4DGS PSNR | 4DGS SSIM | 4DGS LPIPS | TAD-GS PSNR | TAD-GS SSIM | TAD-GS LPIPS |
 |---|--------|-----------|-----------|------------|-------------|-------------|--------------|
+| 2 | Full image | 24.62 | 0.8320 | 0.3707 | | | |
+| 2 | Dynamic BBox | 23.77 | 0.8023 | 0.3739 | | | |
 | 4 | Full image | 24.49 | 0.8288 | 0.3743 | | | |
 | 4 | Dynamic BBox | 22.99 | 0.7855 | 0.3833 | | | |
 | 8 | Full image | 23.81 | 0.8228 | 0.3829 | | | |
 | 8 | Dynamic BBox | 21.00 | 0.7524 | 0.4188 | | | |
-
-*Note: k=2 training camera bbox metrics are pending re-evaluation.*
 
 ---
 
@@ -161,7 +161,17 @@ For 4DGS specifically, the HexPlane's time-axis resolution becomes undersampled:
 
 **The degradation is concentrated in dynamic regions:**
 
-The data shows this clearly. Comparing full-image vs dynamic-region (Otsu bbox) PSNR on the held-out camera (cam00) at high resolution:
+The data shows this clearly. Comparing full-image vs dynamic-region (Otsu bbox) PSNR at high resolution:
+
+**Training cameras (Setting 1):**
+
+| k | Full PSNR | BBox PSNR | Gap (Full − BBox) |
+|---|-----------|-----------|-------------------|
+| 2 | 24.62 | 23.77 | 0.85 dB |
+| 4 | 24.49 | 22.99 | 1.50 dB |
+| 8 | 23.81 | 21.00 | 2.81 dB |
+
+**Held-out camera (Setting 2):**
 
 | k | Full PSNR | BBox PSNR | Gap (Full − BBox) |
 |---|-----------|-----------|-------------------|
@@ -218,7 +228,9 @@ We evaluate on both: (a) the 17 training cameras, reporting the mean PSNR across
 
 ### 4DGS Per-Frame PSNR Plot
 
-*(Plot to be generated from high-res all-50-frames data.)*
+![4DGS Per-Frame PSNR (k=8, high-res)](figures/psnr_per_frame_k8_highres.png)
+
+*Figure 1: 4DGS per-frame PSNR across all 50 frames for k=8 on the coffee_martini scene at 2704 × 2028 resolution. Blue line: mean PSNR over 17 training cameras. Orange line: held-out cam00 PSNR. Green circles mark training timestamps {0, 8, 16, 24, 32, 40, 48}. Red diamonds mark midpoint test timestamps {4, 12, 20, 28, 36, 44}.*
 
 ### Summary Statistics (k = 8, all 50 frames, 2704 × 2028)
 
