@@ -16,6 +16,7 @@ output/*
 !output/4DGS_Assignment_Report.md
 !output/report_v1.md
 !output/CODEBASE_CHANGES.md
+!output/4DGS_Submission_Data.md
 
 # Allow figures referenced in report
 !output/figures/
