@@ -1,0 +1,290 @@
+{
+  "cam00": {
+    "otsu_thresh_px": 1.5664420333563112,
+    "otsu_thresh_u8": 64.0,
+    "bbox_highres": [
+      981,
+      784,
+      2001,
+      1784
+    ],
+    "bbox_lowres": [
+      245,
+      196,
+      501,
+      446
+    ]
+  },
+  "cam01": {
+    "otsu_thresh_px": 1.8628443100873162,
+    "otsu_thresh_u8": 64.0,
+    "bbox_highres": [
+      1366,
+      757,
+      2006,
+      1557
+    ],
+    "bbox_lowres": [
+      341,
+      189,
+      502,
+      390
+    ]
+  },
+  "cam02": {
+    "otsu_thresh_px": 1.611246322183048,
+    "otsu_thresh_u8": 62.0,
+    "bbox_highres": [
+      1294,
+      775,
+      2175,
+      1983
+    ],
+    "bbox_lowres": [
+      323,
+      193,
+      544,
+      496
+    ]
+  },
+  "cam04": {
+    "otsu_thresh_px": 1.6023725921032475,
+    "otsu_thresh_u8": 64.0,
+    "bbox_highres": [
+      1126,
+      786,
+      2031,
+      1846
+    ],
+    "bbox_lowres": [
+      281,
+      196,
+      508,
+      462
+    ]
+  },
+  "cam05": {
+    "otsu_thresh_px": 1.5088579439649394,
+    "otsu_thresh_u8": 62.0,
+    "bbox_highres": [
+      1077,
+      799,
+      2052,
+      1855
+    ],
+    "bbox_lowres": [
+      269,
+      199,
+      513,
+      464
+    ]
+  },
+  "cam06": {
+    "otsu_thresh_px": 1.4770329232309378,
+    "otsu_thresh_u8": 62.0,
+    "bbox_highres": [
+      350,
+      440,
+      2684,
+      1781
+    ],
+    "bbox_lowres": [
+      87,
+      110,
+      671,
+      446
+    ]
+  },
+  "cam07": {
+    "otsu_thresh_px": 1.3583023146087048,
+    "otsu_thresh_u8": 62.0,
+    "bbox_highres": [
+      244,
+      106,
+      2592,
+      1706
+    ],
+    "bbox_lowres": [
+      61,
+      26,
+      648,
+      427
+    ]
+  },
+  "cam08": {
+    "otsu_thresh_px": 1.3572912160088035,
+    "otsu_thresh_u8": 63.0,
+    "bbox_highres": [
+      181,
+      772,
+      1774,
+      1638
+    ],
+    "bbox_lowres": [
+      45,
+      193,
+      444,
+      410
+    ]
+  },
+  "cam09": {
+    "otsu_thresh_px": 1.3343455707325655,
+    "otsu_thresh_u8": 61.0,
+    "bbox_highres": [
+      597,
+      27,
+      1735,
+      1652
+    ],
+    "bbox_lowres": [
+      149,
+      6,
+      434,
+      413
+    ]
+  },
+  "cam10": {
+    "otsu_thresh_px": 1.3639979642980238,
+    "otsu_thresh_u8": 60.0,
+    "bbox_highres": [
+      517,
+      776,
+      1686,
+      1696
+    ],
+    "bbox_lowres": [
+      129,
+      194,
+      422,
+      424
+    ]
+  },
+  "cam11": {
+    "otsu_thresh_px": 1.4836476718678193,
+    "otsu_thresh_u8": 54.0,
+    "bbox_highres": [
+      736,
+      615,
+      1365,
+      1929
+    ],
+    "bbox_lowres": [
+      184,
+      153,
+      342,
+      483
+    ]
+  },
+  "cam12": {
+    "otsu_thresh_px": 1.5267264029558967,
+    "otsu_thresh_u8": 61.0,
+    "bbox_highres": [
+      642,
+      501,
+      1347,
+      1812
+    ],
+    "bbox_lowres": [
+      160,
+      125,
+      337,
+      453
+    ]
+  },
+  "cam13": {
+    "otsu_thresh_px": 0.4878563974417892,
+    "otsu_thresh_u8": 40.0,
+    "bbox_highres": [
+      61,
+      6,
+      2704,
+      1760
+    ],
+    "bbox_lowres": [
+      15,
+      1,
+      676,
+      440
+    ]
+  },
+  "cam14": {
+    "otsu_thresh_px": 1.4669000102024452,
+    "otsu_thresh_u8": 59.0,
+    "bbox_highres": [
+      1104,
+      622,
+      1713,
+      1883
+    ],
+    "bbox_lowres": [
+      276,
+      155,
+      429,
+      471
+    ]
+  },
+  "cam16": {
+    "otsu_thresh_px": 1.3563152088838464,
+    "otsu_thresh_u8": 58.0,
+    "bbox_highres": [
+      966,
+      549,
+      1589,
+      1834
+    ],
+    "bbox_lowres": [
+      241,
+      137,
+      398,
+      459
+    ]
+  },
+  "cam18": {
+    "otsu_thresh_px": 1.2583576426786536,
+    "otsu_thresh_u8": 58.0,
+    "bbox_highres": [
+      819,
+      72,
+      2474,
+      1830
+    ],
+    "bbox_lowres": [
+      204,
+      18,
+      619,
+      458
+    ]
+  },
+  "cam19": {
+    "otsu_thresh_px": 1.2875788707359166,
+    "otsu_thresh_u8": 59.0,
+    "bbox_highres": [
+      1045,
+      763,
+      1683,
+      1540
+    ],
+    "bbox_lowres": [
+      261,
+      190,
+      421,
+      385
+    ]
+  },
+  "cam20": {
+    "otsu_thresh_px": 1.232314390294692,
+    "otsu_thresh_u8": 60.0,
+    "bbox_highres": [
+      941,
+      701,
+      1595,
+      1471
+    ],
+    "bbox_lowres": [
+      235,
+      175,
+      399,
+      368
+    ]
+  }
+}
