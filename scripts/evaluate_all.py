@@ -127,7 +127,7 @@ def eval_camera_set(views, gaussians, render_fn, GRsetting, GRzer, background, f
 def main():
     duration = 50
     scene_path = WORKSPACE / "data" / "neural_3d_video" / "scenes" / "coffee_martini" / "colmap_0"
-    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "bbox_masks"
+    flow_masks_path = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "otsu_bbox_masks"
     results_dir = WORKSPACE / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
