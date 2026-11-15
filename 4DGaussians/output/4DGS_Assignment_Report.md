@@ -228,11 +228,11 @@ We evaluate on both: (a) the 17 training cameras, reporting the mean PSNR across
 
 ### 4DGS Per-Frame PSNR Plot
 
-![4DGS Per-Frame PSNR (k=8, high-res)](figures/psnr_per_frame_k8_highres.png)
+![4DGS Per-Frame PSNR (k=8, high-res)](dynamic_region_evaluation/psnr_per_frame_k8_highres.png)
 
-*Figure 1: 4DGS per-frame PSNR across all 50 frames for k=8 on the coffee_martini scene at 2704 × 2028 resolution. Blue line: mean PSNR over 17 training cameras. Orange line: held-out cam00 PSNR. Green circles mark training timestamps {0, 8, 16, 24, 32, 40, 48}. Red diamonds mark midpoint test timestamps {4, 12, 20, 28, 36, 44}.*
+*Figure 1: (Top) 4DGS per-frame PSNR across all 50 frames for k=8 at 2704 × 2028. Blue: 17 training cameras mean. Orange: held-out cam00. Green circles: training timestamps. Red diamonds: midpoint test timestamps. (Bottom) cam00 full-frame PSNR (orange) vs dynamic region masked PSNR (purple), showing the amplified sawtooth in moving areas.*
 
-### Summary Statistics (k = 8, all 50 frames, 2704 × 2028)
+### Summary Statistics — Full Image (k = 8, all 50 frames, 2704 × 2028)
 
 | Camera set | Train-frame PSNR | Midpoint PSNR | All-50 mean PSNR | Sawtooth amplitude |
 |------------|-----------------|---------------|-------------------|--------------------|
@@ -241,12 +241,24 @@ We evaluate on both: (a) the 17 training cameras, reporting the mean PSNR across
 | TAD-GS training cameras | | | | |
 | TAD-GS held-out cam00 | | | | |
 
+### Summary Statistics — Dynamic Region / Otsu BBox (k = 8, all 50 frames, 2704 × 2028)
+
+| Camera set | Train-frame PSNR | Midpoint PSNR | All-50 mean PSNR | Sawtooth amplitude |
+|------------|-----------------|---------------|-------------------|--------------------|
+| 4DGS training cameras (17-cam mean) | 23.77 | 21.00 | 22.22 | ~2.77 dB |
+| 4DGS held-out cam00 | 22.38 | 20.26 | 21.22 | ~2.12 dB |
+| TAD-GS training cameras | | | | |
+| TAD-GS held-out cam00 | | | | |
+
+**Source data:** `output/dynamic_region_evaluation/cam00_all50_full_and_bbox.csv`, `output/dynamic_region_evaluation/train_cameras_all50_full_and_bbox.csv`
+
 ### Analysis
 
 The plot reveals a **periodic sawtooth (scallop) pattern**: PSNR peaks at training timestamps and dips toward midpoints, then rises again toward the next training frame. This confirms that 4DGS overfits to the training timestamps — the deformation network learns more precise reconstructions at supervised frames than at unseen intermediate times.
 
 Key observations:
-- **Training cameras show a larger sawtooth (~0.91 dB)** than cam00 (~0.70 dB). This is because training cameras were directly supervised at the training timestamps, so the model produces better reconstructions at those frames. At midpoints, the training-camera PSNR drops. For cam00, which was never seen at any frame, both peaks and troughs are lower and the swing is smaller — the model never achieves the same overfitting peaks.
+- **Training cameras show a larger sawtooth (~0.91 dB)** than cam00 (~0.70 dB) on full-image metrics. This is because training cameras were directly supervised at the training timestamps, so the model produces better reconstructions at those frames. For cam00, which was never seen at any frame, both peaks and troughs are lower and the swing is smaller.
+- **The sawtooth is dramatically amplified in dynamic regions**: training cameras show a 2.77 dB sawtooth amplitude in the Otsu bbox (vs 0.91 dB full-image), and cam00 shows 2.12 dB (vs 0.70 dB). This ~3× amplification confirms that temporal overfitting is concentrated in the moving bartender region, while the static background maintains consistent quality across all frames.
 - **PSNR decrease is symmetric around each training frame**: frames at distance d from the nearest training frame have similar PSNR regardless of whether they are before or after it, consistent with bilinear interpolation in the HexPlane time axis.
 - **The pattern is consistent across the sequence**, with no obvious outlier segments, indicating uniform temporal interpolation behavior.
 

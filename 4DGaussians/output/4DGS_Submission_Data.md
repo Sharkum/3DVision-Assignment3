@@ -43,14 +43,29 @@
 
 ## Deliverable 3: Per-Frame PSNR (k=8, All 50 Frames, 2704×2028)
 
-![Sawtooth PSNR Plot](figures/psnr_per_frame_k8_highres.png)
+![Sawtooth PSNR Plot](dynamic_region_evaluation/psnr_per_frame_k8_highres.png)
 
-### Summary Statistics
+*Top: Training cameras (blue) and held-out cam00 (orange) full-frame PSNR across all 50 frames. Bottom: cam00 full-frame (orange) vs dynamic region masked (purple) PSNR.*
+
+### Summary Statistics — Full Image
 
 | Camera Set | Train-Frame PSNR | Midpoint PSNR | All-50 Mean | Sawtooth Δ |
 |------------|-----------------|---------------|-------------|------------|
 | Training cameras (17-cam mean) | 24.72 | 23.81 | 24.25 | 0.91 dB |
 | Held-out cam00 | 23.89 | 23.19 | 23.53 | 0.70 dB |
+
+### Summary Statistics — Dynamic Region (Otsu BBox)
+
+| Camera Set | Train-Frame PSNR | Midpoint PSNR | All-50 Mean | Sawtooth Δ |
+|------------|-----------------|---------------|-------------|------------|
+| Training cameras (17-cam mean) | 23.77 | 21.00 | 22.22 | 2.77 dB |
+| Held-out cam00 | 22.38 | 20.26 | 21.22 | 2.12 dB |
+
+The sawtooth amplitude in dynamic regions (~2.1–2.8 dB) is **3× larger** than full-image (~0.7–0.9 dB), confirming temporal overfitting is concentrated in moving areas.
+
+**Source data:**
+- `dynamic_region_evaluation/cam00_all50_full_and_bbox.csv`
+- `dynamic_region_evaluation/train_cameras_all50_full_and_bbox.csv`
 
 ---
 
