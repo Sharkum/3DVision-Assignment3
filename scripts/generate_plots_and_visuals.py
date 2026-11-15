@@ -193,9 +193,9 @@ def generate_visual_comparison():
 
 
 def generate_dynamic_mask_figure():
-    """Save an illustration of the optical-flow-based bounding box mask on cam00 at t=20."""
+    """Save an illustration of the Otsu optical-flow average bounding box mask on cam00 at t=20."""
     gt_file = WORKSPACE / "data" / "neural_3d_video" / "scenes" / "coffee_martini" / "colmap_20" / "images" / "cam00.png"
-    mask_file = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "bbox_masks" / "mask_cam00_frame0020.png"
+    mask_file = WORKSPACE / "data" / "neural_3d_video" / "flow_masks" / "coffee_martini" / "otsu_bbox_masks" / "mask_cam00_frame0020.png"
     if not gt_file.exists() or not mask_file.exists():
         print(f"[Warning] Mask file or GT file missing: {gt_file}, {mask_file}")
         return
@@ -217,7 +217,7 @@ def generate_dynamic_mask_figure():
     axes[1].imshow(mask, cmap="gray")
     rect1 = patches.Rectangle((x0, y0), x1 - x0, y1 - y0, linewidth=2.2, edgecolor="#ff3333", facecolor="none")
     axes[1].add_patch(rect1)
-    axes[1].set_title(f"Dynamic Bounding Box Mask (tau=0.5 px)\nBox: {x1-x0}x{y1-y0} px ({mask.mean()*100:.1f}% pixels)", fontweight="bold", fontsize=11)
+    axes[1].set_title(f"Otsu Average Flow BBox Mask\nBox: {x1-x0}x{y1-y0} px ({mask.mean()*100:.1f}% pixels)", fontweight="bold", fontsize=11)
     axes[1].axis("off")
 
     axes[2].imshow(overlay)

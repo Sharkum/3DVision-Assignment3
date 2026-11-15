@@ -52,7 +52,7 @@ In 3DGS, Gaussian $i$ has the parameters
 
 Its shape is the covariance $`\boldsymbol{\Sigma}_i = R(\mathbf{q})\,S\,S^\top R(\mathbf{q})^\top`$, built from the rotation matrix $R(\mathbf{q})$ and the diagonal scale matrix $S = \mathrm{diag}(\mathbf{s})$. To render, every Gaussian is projected to a 2D ellipse on screen, the ellipses are sorted front to back, and colours are alpha-blended using opacity $`o_i = \mathrm{sigm}(\tilde{o}_i)`$.
 
-The rasterizer also returns, for each Gaussian, its on-screen radius $\text{radii}_i$. It is $`>0`$ whenever the Gaussian lands inside the camera's view frustum (the pyramid-shaped region the camera can see). In code this is `visibility_filter = radii > 0` ([renderer](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/gaussian_renderer/__init__.py#L94)).
+The rasterizer also returns, for each Gaussian, its on-screen radius $\text{radii}_i$. It is $`>0`$ whenever the Gaussian lands inside the camera's view frustum (the pyramid-shaped region the camera can see, cut off at the near and far planes: anything outside it cannot land in the image). Note that this test is purely **geometric**: it uses the Gaussian's position and size, and ignores how transparent it is. Section 3 explains why that matters for video. In code this is `visibility_filter = radii > 0` ([renderer](https://github.com/vikramsandu/TAD-GS/blob/24c9f2aa871f05fa9771a904d65f063a92ec2144/gaussian_renderer/__init__.py#L94)).
 
 ### 1.2 Adaptive Density Control (clone / split)
 
@@ -81,6 +81,48 @@ For a **video** (multi-view, with many frames over time), each Gaussian has to c
    - *Upside*: very fast, and appearing/disappearing objects are natural (opacity just goes to 0).
 
 **TAD-GS builds on the explicit family.** The rest of this document uses one key consequence of that choice: **each Gaussian is only "alive" (visible) for part of the video.**
+
+### 2.1 Spacetime Gaussians (STG): the backbone TAD-GS is built on
+
+TAD-GS is not written from scratch. Its codebase, rasteriser submodules (`gaussian_rasterization_ch3`, `simple-knn`) and environment setup come from the public [SpacetimeGaussians](https://github.com/oppo-us-research/SpacetimeGaussians) repository (Li et al., CVPR 2024, *"Spacetime Gaussian Feature Splatting for Real-Time Dynamic View Synthesis"*), which in turn is derived from the original 3DGS code. If you understand STG, then Part A of this document is "STG with a few modifications" and Part B is the paper's main contribution.
+
+> [!NOTE]
+> This subsection summarises STG from the STG paper, written in this document's notation. It is a summary for orientation, not a substitute for reading that paper. Which parts the TAD-GS code keeps or changes is checked against this repo's [`tad_gaussian.py`](TAD-GS/scene/tad_gaussian.py).
+
+**STG's idea: give every Gaussian a lifespan and a trajectory, both closed-form functions of time.** Each Gaussian $i$ stores a temporal centre $\mu_{t,i}$ (the moment it is "about") and uses the plain offset $d = t - \mu_{t,i}$ to compute three things:
+
+1. **Temporal opacity.** STG multiplies the Gaussian's peak opacity by a *symmetric* bell in time:
+
+   ```math
+   o_i(t) = \mathrm{sigm}(\tilde{o}_i)\cdot \exp\!\big(-s_i\, d^{2}\big)
+   ```
+
+   where $s_i$ is a learned temporal scale (bigger $s_i$ means shorter life). The same width applies before and after $\mu_{t,i}$. This is what lets a Gaussian be fully transparent at most times, so objects can appear and vanish.
+2. **Motion.** A **cubic polynomial** in $d$: $\boldsymbol{\mu}_i(t) = \sum_{k=0}^{3} \mathbf{b}_{i,k}\, d^{k}$. Cheap, but polynomials are unbounded away from $\mu_{t,i}$.
+3. **Rotation.** A **linear** function of $d$ in quaternion space, then normalised.
+
+**Naming trap: "TRBF".** In STG's code the temporal bell is called a *temporal radial basis function* (TRBF). That is why this repo has `trbf_center` ($\mu_{t,i}$), `trbf_scale` (the widths $\sigma$), `trbf_scale_accum` and `current_trbf_scale`. Whenever you see `trbf` in the code, read "temporal opacity bell".
+
+**Initialisation from anchor frames.** STG does not start from one static point cloud. It builds the initial points from a subset of video frames (multi-view reconstruction, e.g. COLMAP) and tags each point with the time of the frame it came from, which becomes $\mu_{t,i}$. TAD-GS keeps this: the anchor frames are every 24th frame by default (see Section 4).
+
+**Colour.** The STG paper replaces spherical harmonics with a small feature vector decoded by a tiny MLP ("feature splatting"), and also has a lite variant. The TAD-GS code here does **not** use that: `get_features` returns plain SH coefficients (`_features_dc`, `_features_rest`) and the renderer passes them as `shs`, exactly as in 3DGS. The `_ch3` in the rasteriser's name refers to the 3-channel colour output.
+
+**What STG leaves alone: densification.** STG (like the 4D methods) keeps 3DGS's clone/split rule from Section 1.2 unchanged, apart from its own training tricks for point sampling. TAD-GS's central claim is that this rule is the weak point for videos (Sections 3 and 5).
+
+### 2.2 What TAD-GS inherits and what it changes
+
+| Piece | Origin | In TAD-GS |
+| :--- | :--- | :--- |
+| Gaussian parameters (position, scale, rotation, opacity, SH colour) | 3DGS | Unchanged |
+| Rasteriser, alpha blending, `simple-knn` | 3DGS, via the STG repo | Unchanged |
+| Clone / split / prune loop (Section 1.2) | 3DGS | Kept, but the *statistic* and *threshold* are replaced (VAD, TAT) |
+| Per-Gaussian temporal centre $\mu_{t,i}$, fixed and set from anchor frames | STG | Kept |
+| Temporal opacity bell (`trbf_*`) | STG | Made **asymmetric** ($\sigma_L \ne \sigma_R$), widths reparameterised via $\sigma_{\min}$ |
+| Time offset $d = t - \mu_{t,i}$ | STG | Replaced by the **warped** offset $\delta_i(t)$ (TOW) |
+| Motion model | STG: cubic polynomial | **Fourier** series in $\delta_i(t)$ |
+| Rotation model | STG: linear in offset | Linear in $\delta_i(t)$, then normalised (same form as STG; only the offset input changes) |
+| Colour model | STG paper: feature MLP | Plain SH, as in 3DGS |
+| Densification statistic and threshold | 3DGS (STG unchanged) | **VAD** and **TAT** (the paper's main contribution) |
 
 ---
 

@@ -35,24 +35,24 @@ The table below reports average **PSNR (dB)**, **SSIM**, and **LPIPS (AlexNet)**
 
 ---
 
-## 2. Deliverable 2: Dynamic-Region Quality (Optical-Flow Bounding Box Mask, $\tau = 0.5\text{ px}$)
+## 2. Deliverable 2: Dynamic-Region Quality (Otsu Average-Flow Bounding Box Mask)
 
 ### Motion Mask Formulation & Threshold Justification
-To measure how models perform specifically on the non-rigid moving content (the bartender shaking and pouring the martini, moving arms, and hands) rather than being dominated by static background walls and tables, an optical-flow dynamic bounding box mask was computed across the 50 frames:
-1. **Dense Optical Flow with Forward-Backward Consistency**: Farnebäck optical flow ($\text{pyr\_scale}=0.5, \text{levels}=3, \text{winsize}=15$) combined with a forward-backward cycle consistency check and photometric change filter cleanly zeros out aperture-drift noise on static backgrounds.
-2. **Smallest Enclosing Bounding Box ($\tau = 0.5\text{ px}$)**: All pixels with optical flow magnitude $\|\mathbf{u}(x, y)\|_2 > 0.5\text{ px}$ are identified, and the minimal axis-aligned bounding box enclosing all active pixels ($[x_{\min}:x_{\max}, y_{\min}:y_{\max}]$) is extracted for each frame and camera.
-3. **Threshold Behavior**: At $\tau = 0.0\text{ px}$, sub-pixel compression specks expand the box to the full frame; setting $\tau = 0.5\text{ px}$ cleanly encapsulates the moving person and cocktail shaker while excluding the surrounding static room.
+To measure model performance specifically on the non-rigid moving content (the bartender shaking and pouring the martini, moving arms, hands, and cocktail shaker) rather than being dominated by static background walls and tables, a video-level average optical flow map and Otsu's thresholding was computed across the 50 frames:
+1. **Temporal Average Optical Flow**: Dense Farnebäck optical flow ($\text{pyr\_scale}=0.5, \text{levels}=3, \text{winsize}=15$) with forward-backward cycle consistency was accumulated across all 50 frames to compute the temporal mean flow magnitude map $\bar{F}(x, y) = \frac{1}{50}\sum_{t=0}^{49} \|\mathbf{u}_t(x, y)\|_2$.
+2. **Otsu's Thresholding (Parameter-Free)**: Otsu's automated bimodal thresholding was applied to $\bar{F}(x, y)$, selecting an optimal motion separation threshold of $\tau_{\text{Otsu}} = \mathbf{0.376\text{ px}}$ (64/255) for `cam00` and isolating active motion pixels with zero background noise.
+3. **Minimal Enclosing Bounding Box**: The minimal axis-aligned bounding box enclosing all active pixels ($[x_{\min}:x_{\max},\; y_{\min}:y_{\max}] = [248:399,\; 195:403]$ on `cam00`, $151 \times 208\text{ px}$, covering $9.2\%$ of the image area) was extracted for each camera.
 
 ![Dynamic Region Mask Visualization](dynamic_mask_visualization.png)
-*Figure 1: Optical-flow dynamic bounding box mask on `cam00` at $t=20$ ($\tau = 0.5\text{ px}$). Left: Ground Truth; Middle: Binary bounding-box mask; Right: Dynamic region overlay on GT.*
+*Figure 1: Otsu average-flow dynamic bounding box mask on `cam00` at $t=20$. Left: Ground Truth; Middle: Binary bounding-box mask; Right: Dynamic region overlay on GT.*
 
 ### Dynamic-Region Evaluation Results
 
 | Frame Gap $k$ | Setting 1: Train Cams, Held-Out Time<br>(Masked PSNR ↑ / Masked SSIM ↑ / Masked LPIPS ↓) | Setting 2: Held-Out Cam (`cam00`), Held-Out Time<br>(Masked PSNR ↑ / Masked SSIM ↑ / Masked LPIPS ↓) |
 | :---: | :---: | :---: |
-| **$k = 2$** | **29.60 dB** / **0.9166** / **0.0687** | **28.23 dB** / **0.9051** / **0.0661** |
-| **$k = 4$** | **27.45 dB** / **0.8712** / **0.1022** | **27.13 dB** / **0.8686** / **0.0977** |
-| **$k = 8$** | **25.76 dB** / **0.8362** / **0.1102** | **24.97 dB** / **0.8222** / **0.1105** |
+| **$k = 2$** | **27.79 dB** / **0.8859** / **0.0777** | **25.67 dB** / **0.8578** / **0.0919** |
+| **$k = 4$** | **25.80 dB** / **0.8240** / **0.1094** | **24.62 dB** / **0.8025** / **0.1155** |
+| **$k = 8$** | **23.68 dB** / **0.7751** / **0.1249** | **22.70 dB** / **0.7420** / **0.1315** |
 
 ---
 
@@ -68,10 +68,8 @@ For $k = 8$, the model is trained on only 7 timestamps ($\{0, 8, 16, 24, 32, 40,
    - A clear, periodic scallop/saw-tooth curve is visible. PSNR reaches local peaks at the observed training timestamps ($t \in \{0, 8, 16, 24, 32, 40, 48\}$) and drops to valleys at the midpoints ($t \in \{4, 12, 20, 28, 36, 44\}$).
    - On the training cameras, peak PSNR exceeds **$28.5\text{ dB}$** at anchor frames, while dropping to **$\sim 25.8\text{ dB}$** at midpoints—a clear **$2.7\text{ dB}$ interpolation dip**.
 2. **Amplified Degradation in Dynamic Regions**:
-   - The bottom panel contrasts the full-image PSNR against the dynamic-region masked PSNR ($\tau = 0.5\text{ px}$ bounding box).
-   - During rapid motion intervals ($t \in [19, 28]$ and $t \in [44, 49]$), the dynamic bounding box PSNR drops more sharply than the full frame—falling to **$21.7\text{ dB} - 22.8\text{ dB}$** at midpoint frames ($t=20, 28, 44$) compared to **$27.2\text{ dB} - 29.8\text{ dB}$** at observed training anchors, illustrating that interpolation errors are concentrated in the moving bartender and shaker region.
-
----
+   - The bottom panel contrasts the full-image PSNR against the dynamic-region masked PSNR (Otsu average-flow bounding box).
+   - In dynamic regions, reconstruction drops significantly at midpoint test frames down to **$19.5\text{ dB} - 22.8\text{ dB}$**, clearly showing that temporal interpolation error is concentrated inside the moving actor and cocktail shaker region.
 
 ## 4. Deliverable 4: Visual Comparison & Error Maps
 
@@ -127,16 +125,15 @@ TAD-GS fails when the frame gap $k$ violates the **temporal Nyquist-Shannon samp
 ### Question 3: Is there a gap between dynamic regions and the rest of the image? Does it depend on the method?
 
 **Empirical Gap**:
-Yes, there is a clear, consistent gap between dynamic bounding box regions and full-image metrics across all $k$:
-- **At $k = 2$**: Setting 1 Full-image PSNR is **$30.14\text{ dB}$** vs. Dynamic Masked PSNR of **$29.60\text{ dB}$** ($0.54\text{ dB}$ gap).
-- **At $k = 4$**: Setting 1 Full-image PSNR is **$27.85\text{ dB}$** vs. Dynamic Masked PSNR of **$27.45\text{ dB}$** ($0.40\text{ dB}$ gap).
-- **At $k = 8$**: Setting 1 Full-image PSNR is **$26.15\text{ dB}$** vs. Dynamic Masked PSNR of **$25.76\text{ dB}$** ($0.39\text{ dB}$ gap).
-- On the held-out camera (`cam00`), at $k=8$ Full-image PSNR is **$25.59\text{ dB}$** vs. Dynamic Masked PSNR of **$24.97\text{ dB}$** ($0.62\text{ dB}$ gap).
+Yes, there is a clear, substantial gap between dynamic bounding box regions and full-image metrics across all $k$:
+- **At $k = 2$**: Setting 1 Full-image PSNR is **$30.14\text{ dB}$** vs. Dynamic Masked PSNR of **$27.79\text{ dB}$** ($2.35\text{ dB}$ gap). On `cam00`, Full PSNR is **$28.26\text{ dB}$** vs. Dynamic Masked **$25.67\text{ dB}$** ($2.59\text{ dB}$ gap).
+- **At $k = 4$**: Setting 1 Full-image PSNR is **$27.85\text{ dB}$** vs. Dynamic Masked PSNR of **$25.80\text{ dB}$** ($2.05\text{ dB}$ gap). On `cam00`, Full PSNR is **$26.92\text{ dB}$** vs. Dynamic Masked **$24.62\text{ dB}$** ($2.30\text{ dB}$ gap).
+- **At $k = 8$**: Setting 1 Full-image PSNR is **$26.15\text{ dB}$** vs. Dynamic Masked PSNR of **$23.68\text{ dB}$** ($2.47\text{ dB}$ gap). On `cam00`, Full PSNR is **$25.59\text{ dB}$** vs. Dynamic Masked **$22.70\text{ dB}$** ($2.89\text{ dB}$ gap).
 
 **Why the Gap Exists and How TAD-GS Mitigates It**:
 - In static areas (background bar counter, bottles, floor), every frame provides redundant photometric supervision; the temporal error is zero. In dynamic regions, non-rigid deformation and occlusions make midpoint reconstruction strictly an interpolation problem.
 - **Method Dependence**: In baseline 4DGS (e.g., Spacetime Gaussians), this gap is catastrophic because static 3DGS gradient accumulation divides dynamic gradients by inactive frames, causing dynamic regions to never densify.
-- **TAD-GS Solution**: **Visibility-Aware Densification (VAD)** weights gradients by instantaneous temporal opacity $\alpha_i(t)$, while **Temporally Adaptive Thresholding (TAT)** lowers the densification threshold by up to $25\%$ for transient Gaussians. As evidenced by our $k=2$ dynamic masked PSNR of **$29.60\text{ dB}$**, TAD-GS successfully densifies and reconstructs moving structures that baseline methods blur.
+- **TAD-GS Solution**: **Visibility-Aware Densification (VAD)** weights gradients by instantaneous temporal opacity $\alpha_i(t)$, while **Temporally Adaptive Thresholding (TAT)** lowers the densification threshold by up to $25\%$ for transient Gaussians. As evidenced by our $k=2$ dynamic masked PSNR of **$27.79\text{ dB}$**, TAD-GS successfully densifies and reconstructs moving structures that baseline methods blur.
 
 ---
 
