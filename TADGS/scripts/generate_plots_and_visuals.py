@@ -272,6 +272,7 @@ def write_summary_tables(metrics: dict):
         )
 
     out_md = WORKSPACE / "report" / "summary_tables.md"
+    out_md.parent.mkdir(exist_ok=True)
     out_md.write_text("\n".join(md_lines) + "\n")
     print(f"Saved Markdown summary tables to {out_md}")
 

@@ -1,0 +1,42 @@
+{
+ "TAD-GS_A_drop_k2_k8": 3.99,
+ "TAD-GS_A_dyndrop_k2_k8": 4.11,
+ "TAD-GS_B_drop_k2_k8": 2.66,
+ "TAD-GS_B_dyndrop_k2_k8": 2.97,
+ "STGS_A_drop_k2_k8": 1.52,
+ "STGS_A_dyndrop_k2_k8": 3.43,
+ "STGS_B_drop_k2_k8": 0.09,
+ "STGS_B_dyndrop_k2_k8": 2.16,
+ "4DGS_A_drop_k2_k8": 4.22,
+ "4DGS_A_dyndrop_k2_k8": 8.97,
+ "4DGS_B_drop_k2_k8": 2.02,
+ "4DGS_B_dyndrop_k2_k8": 5.06,
+ "TADGS_k8_A_train_vs_test": [
+  30.13,
+  26.15
+ ],
+ "TADGS_k8_B_train_vs_test": [
+  28.36,
+  25.59
+ ],
+ "4DGS_k8_A_train_vs_test": [
+  32.41,
+  28.22
+ ],
+ "4DGS_k8_B_train_vs_test": [
+  28.46,
+  26.39
+ ],
+ "TADGS_cam00_k1_mean_all50": 28.3,
+ "TADGS_cam00_k2_mean_all50": 28.31,
+ "TADGS_cam00_k4_mean_all50": 27.78,
+ "TADGS_cam00_k8_mean_all50": 26.6,
+ "TADGS_cam00_k4_near_anchor_vs_rest": [
+  25.53,
+  28.32
+ ],
+ "TADGS_cam00_k8_near_anchor_vs_rest": [
+  22.96,
+  27.45
+ ]
+}

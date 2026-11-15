@@ -47,158 +47,60 @@ The original code called `readdynerfInfo(args.source_path, args.white_background
 
 ---
 
-## 2. New Evaluation Scripts
+## 2. Evaluation (used by the combined report)
 
-All new scripts are in the repository root alongside the existing training/rendering code.
+All final 4DGS numbers come from `low_resolution_work_v2/`, evaluated at training resolution (676 × 507) with LPIPS-AlexNet v0.1, the same setup as TAD-GS and STGS.
 
-### `evaluate_midpoints.py` — Low-Resolution Midpoint Evaluation
+### `low_resolution_work_v2/evaluate_lowres_v2.py`
 
-Evaluates the trained model at the held-out midpoint timestamps at training resolution (676 × 507). Computes PSNR, SSIM, and LPIPS (VGG backbone) under two settings:
-- **Setting 1:** 17 training cameras at midpoint times (pure temporal interpolation).
-- **Setting 2:** Held-out cam00 at midpoint times (joint spatial-temporal generalization).
+Evaluates a trained model at the held-out midpoint timestamps:
+- **Setting A:** 17 training cameras at midpoint times (pure temporal interpolation).
+- **Setting B:** held-out cam00 at midpoint times (temporal + novel view).
 
-```bash
-python evaluate_midpoints.py \
-  --configs arguments/dynerf/coffee_martini.py \
-  --model_path output/coffee_martini_k8 \
-  --source_path ~/Desktop/rohan/asmt2/coffee_martini \
-  --gap 8 --iteration 14000
-```
-
-### `evaluate_highres.py` — High-Resolution Evaluation (2704 × 2028)
-
-The primary evaluation script. Renders the trained 4DGS model at **native high resolution** (2704 × 2028) by overriding the camera's `image_width` and `image_height` on a shallow copy of the camera object. Since 4DGS uses FoV-based projection, no intrinsics scaling is needed — the same trained Gaussians project correctly at any resolution.
-
-Computes:
-- Full-image PSNR/SSIM/LPIPS against high-res ground truth.
-- Dynamic-region (Otsu bounding box) metrics by cropping predictions and GT to the per-camera Otsu bbox before computing metrics.
-- For k=8: additionally evaluates all 50 frames (not just midpoints) for the sawtooth PSNR analysis.
+Full-image PSNR/SSIM/LPIPS plus the same metrics inside the per-camera dynamic-region box. The boxes are read from the shared team masks in `low_resolution_work_v2/mask_dynamicregion/` (sequential `cam00`–`cam17` names, mapped to the 18 4DGS camera folders in sorted order). For k = 8 it also evaluates all 50 frames (`all50_cam00.csv`, `all50_train_cameras.csv`) for the per-frame plot.
 
 ```bash
-python evaluate_highres.py \
-  --configs arguments/dynerf/coffee_martini.py \
-  --model_path output/coffee_martini_k8 \
-  --source_path ~/Desktop/rohan/asmt2/coffee_martini \
-  --gap 8 --iteration 14000 --no-save-images
+for k in 2 4 8; do
+  python low_resolution_work_v2/evaluate_lowres_v2.py \
+    --configs arguments/dynerf/coffee_martini.py \
+    --model_path output/coffee_martini_k${k} \
+    --source_path <path to coffee_martini> \
+    --gap $k --iteration 14000
+done
 ```
 
-**Key implementation detail:** The function `make_highres_camera(camera, timestamp)` creates a shallow copy of the camera and overrides `image_width=2704`, `image_height=2028`, and `time=timestamp`. The Gaussian renderer reads these dimensions directly for rasterization.
+### `low_resolution_work_v2/render_single_frame.py`
 
-### `evaluate_all50_k8.py` — All-50-Frames Evaluation (Low-Res)
-
-Evaluates the k=8 model at all 50 frames (not just the 6 midpoints) at low resolution. Used to generate the sawtooth PSNR pattern data at training resolution. Superseded by the all-50 mode in `evaluate_highres.py` for the final report.
-
-### `extract_highres_frames.py` — High-Res Ground Truth Extraction
-
-Extracts the first 50 frames from each of the 18 camera MP4 videos at their native 2704 × 2028 resolution. These serve as ground truth for high-resolution evaluation.
-
-Output structure: `coffee_martini_highres/{camXX}/images/{XXXX}.png`
-
-### `plot_psnr_per_frame_k8.py` — Sawtooth PSNR Plot (Deliverable 3)
-
-Generates the per-frame PSNR plot for k=8 showing the characteristic sawtooth/scallop pattern. Reads the all-50-frames CSVs and plots training-camera mean PSNR and cam00 PSNR across all 50 timestamps, marking training frames and test midpoints.
-
-### `visual_comparison.py` — Visual Comparison Figure (Deliverable 4)
-
-Generates a 3×4 composite figure comparing GT, rendered image, error heatmap, and dynamic-region crop across k ∈ {2, 4, 8} for the held-out cam00. Frames are chosen near the pouring action peak (~t=20).
+Renders one frame of cam00 at 676 × 507 for a given k and frame index, saved to `low_resolution_work_v2/renders/`. Used for the visual comparison figures (k = 2/4/8 at t = 1/2/4).
 
 ---
 
-## 3. Dynamic Region Detection
-
-### Evolution of approaches
-
-| Version | Script | Method | Status |
-|---------|--------|--------|--------|
-| v1 | `dynamic_bbox_evaluation.py` | Basic optical flow + fixed threshold | Superseded |
-| v3 | `dynamic_bbox_evaluation_v3.py` | Added forward-backward consistency | Superseded |
-| v4 | `dynamic_bbox_evaluation_v4.py` | Per-frame flow, τ=0.5px, morphological outlier removal | Superseded |
-| **v5** | **`dynamic_bbox_evaluation_v5_otsu.py`** | **Otsu average-flow (final)** | **Active** |
-
-### `dynamic_bbox_evaluation_v5_otsu.py` — Otsu Average-Flow Dynamic BBox (Final)
-
-The final dynamic region detection method. For each camera:
-
-1. Computes **Farneback optical flow** between all 49 consecutive frame pairs at native 2704 × 2028 resolution (5 pyramid levels, window size 21, 5 iterations, poly_n=7).
-2. Applies **forward-backward consistency** checking and **photometric filtering** to discard unreliable flow vectors.
-3. **Averages** per-pixel flow magnitudes across all frame pairs, producing a single motion magnitude map per camera.
-4. Applies **Otsu's automatic thresholding** to the averaged map — this finds the optimal threshold that separates dynamic from static pixels by minimizing intra-class variance.
-5. Extracts the tight axis-aligned **bounding box** around the binary dynamic mask.
-
-**Advantages over v4:** One stable bbox per camera (not per-frame), automatic threshold selection (no manual τ), and evaluation at high resolution.
-
-Output: `output/dynamic_bbox_evaluation_v5_otsu/otsu_bboxes.json` containing per-camera bboxes at both high-res and low-res coordinates. Diagnostic PNGs showing the average flow map, Otsu histogram, and bbox overlay are saved per camera.
-
-```bash
-python dynamic_bbox_evaluation_v5_otsu.py --stage diagnostic  # compute bboxes
-python dynamic_bbox_evaluation_v5_otsu.py --stage evaluate    # apply to predictions
-```
-
----
-
-## 4. Output Structure
+## 3. Output Structure
 
 ```
+low_resolution_work_v2/
+├── evaluate_lowres_v2.py
+├── render_single_frame.py
+├── mask_dynamicregion/              # shared team dynamic-region masks (one per camera)
+├── renders/                         # cam00 renders used in the visual comparison
+├── k2/  midpoint_metrics.csv, midpoint_bbox_metrics.csv
+├── k4/  midpoint_metrics.csv, midpoint_bbox_metrics.csv
+└── k8/  midpoint_metrics.csv, midpoint_bbox_metrics.csv, all50_cam00.csv, all50_train_cameras.csv
 output/
-├── coffee_martini_k2/                  # Trained model (k=2, 14k iter)
-│   └── highres_evaluation/
-│       └── gap_2/
-│           ├── metrics.csv             # Full-image PSNR/SSIM/LPIPS per sample
-│           └── bbox_metrics.csv        # Otsu bbox + full metrics per sample
-├── coffee_martini_k4/                  # Trained model (k=4)
-│   └── highres_evaluation/gap_4/...
-├── coffee_martini_k8/                  # Trained model (k=8)
-│   └── highres_evaluation/
-│       └── gap_8/
-│           ├── metrics.csv
-│           ├── bbox_metrics.csv
-│           └── all50/
-│               ├── cam00_all50.csv     # Per-frame metrics, all 50 frames
-│               └── train_cameras_all50.csv
-├── dynamic_bbox_evaluation_v5_otsu/
-│   ├── otsu_bboxes.json               # Per-camera Otsu bboxes (HR + LR coords)
-│   └── diagnostics/                    # Per-camera flow/bbox visualizations
-├── figures/
-│   └── visual_comparison_k2_k4_k8_highres.png
-├── 4DGS_Assignment_Report.md
-└── CODEBASE_CHANGES.md                 # This file
+├── coffee_martini_k{2,4,8}/         # trained models (git-ignored)
+└── CODEBASE_CHANGES.md              # this file
 ```
 
 ---
 
-## 5. Reproducibility
-
-### Environment
-
-- Conda env: `/home/val_gx10/Desktop/rohan/environments/4dgs_gb10_py310_v1/`
-- Python 3.10, PyTorch with CUDA
-- LPIPS (VGG backbone)
-
-### Training commands (one per k)
+## 4. Training
 
 ```bash
-PYTHON=/home/val_gx10/Desktop/rohan/environments/4dgs_gb10_py310_v1/bin/python
-
-$PYTHON train.py \
+python train.py \
   --configs arguments/dynerf/coffee_martini.py \
   --model_path output/coffee_martini_k8 \
-  --source_path ~/Desktop/rohan/asmt2/coffee_martini \
+  --source_path <path to coffee_martini> \
   --gap 8
 ```
 
-### Evaluation commands
-
-```bash
-# High-res evaluation (repeat for k=2, k=4, k=8)
-$PYTHON evaluate_highres.py \
-  --configs arguments/dynerf/coffee_martini.py \
-  --model_path output/coffee_martini_k8 \
-  --source_path ~/Desktop/rohan/asmt2/coffee_martini \
-  --gap 8 --iteration 14000 --no-save-images
-
-# Otsu bounding box detection (run once, covers all cameras)
-$PYTHON dynamic_bbox_evaluation_v5_otsu.py --stage diagnostic
-
-# Extract high-res GT frames (run once)
-$PYTHON extract_highres_frames.py
-```
+14,000 iterations, the authors' DyNeRF configuration, run on an NVIDIA GB10.

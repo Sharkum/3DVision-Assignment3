@@ -2,15 +2,14 @@
 
 Our TAD-GS experiments on `coffee_martini` (50 frames, 676×507). Training uses frames {0, k, 2k, ..., 48}; evaluation uses the unseen midpoint frames, on the training cameras (Setting 1) and on the held-out camera `cam00` (Setting 2).
 
-**Read first:** [report/TADGS_Assignment_Report.md](report/TADGS_Assignment_Report.md) (setup, tables, plots, answers to the questions).
+**Results and discussion:** the combined report, [../deliverables/report/report.pdf](../deliverables/report/report.pdf).
 Background on how TAD-GS works and what it inherits from STG/3DGS: [docs/TADGS_explained.md](docs/TADGS_explained.md).
 
 ## Layout
 
 ```text
 TADGS/
-├── report/                  final report + standalone metric tables
-├── results/                 metrics JSON, figures, render frames, videos
+├── results/                 tadgs_evaluation_metrics.json (final metrics), dynamic_mask_visualization.png
 ├── docs/TADGS_explained.md  walkthrough of the method and code
 ├── scripts/                 our pipeline (see below)
 ├── TAD-GS/                  method code (upstream vikramsandu/TAD-GS, modified, see below)
@@ -34,11 +33,11 @@ The scripts resolve paths relative to their own location, so they can be run fro
 
 | Deliverable | File |
 | :--- | :--- |
-| Full-image and dynamic-region metrics, k = 2, 4, 8 | [report/summary_tables.md](report/summary_tables.md), [results/tadgs_evaluation_metrics.json](results/tadgs_evaluation_metrics.json) |
-| Per-frame PSNR over all 50 frames (k = 8) | [results/psnr_per_frame_k8.png](results/psnr_per_frame_k8.png) |
-| Visual comparison and error maps | [results/visual_comparison_k2_k4_k8.png](results/visual_comparison_k2_k4_k8.png) |
+| Full-image and dynamic-region metrics, k = 2, 4, 8, plus per-frame k = 8 metrics | [results/tadgs_evaluation_metrics.json](results/tadgs_evaluation_metrics.json) |
 | Dynamic-region mask visual | [results/dynamic_mask_visualization.png](results/dynamic_mask_visualization.png) |
-| Optical-flow / bounding-box figures and videos | `results/otsu_avg_flow_bbox_*`, `results/optical_flow_cam00.mp4`, `results/dynamic_bboxes_all_cams_frame20.png`, `results/dynamic_bbox_cc_demo.png` |
+| Tables, per-frame plots, visual comparison | combined in [../deliverables/](../deliverables/) |
+
+Figures, videos and `report/summary_tables.md` written by steps 4-5 are regenerated locally and not committed; the report uses the combined versions in `deliverables/`.
 
 ## Changes to the upstream TAD-GS code (`TAD-GS/`)
 
