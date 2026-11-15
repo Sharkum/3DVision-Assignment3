@@ -1,0 +1,11 @@
+{
+  "iterations": 8001,
+  "position_lr_max_steps": 8000,
+  "densify_from_iter": 400,
+  "densify_until_iter": 4000,
+  "densification_interval": 200,
+  "densify_grad_threshold": 0.0003,
+  "opacity_reset_interval": 2000,
+  "evaluate_every_iter": 1000,
+  "pcd_downsample": 3
+}
