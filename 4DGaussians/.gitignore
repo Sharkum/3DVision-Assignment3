@@ -1,0 +1,16 @@
+*.pyc
+.vscode
+build
+diff_rasterization/diff_rast.egg-info
+diff_rasterization/dist
+tensorboard_3d
+screenshots
+data/
+data
+submodules/
+
+# Output directory: ignore everything except the report files
+output/*
+!output/4DGS_Assignment_Report.md
+!output/report_v1.md
+!output/CODEBASE_CHANGES.md
